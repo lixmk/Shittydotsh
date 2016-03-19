@@ -61,22 +61,22 @@ fi
 
 
 #Nmap All TCP ports on all tagets
-    echo '[*] Initiating Full TCP port scan of all targets'
-    echo '[*] Timing updates provided every 120 seconds'
-    nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./nmap/fullscan -iL ./ips.txt | egrep '(remaining|Stats: )'
-    echo '[*] Full Scan Complete - Sorting Output'
+	echo '[*] Initiating Full TCP port scan of all targets'
+	echo '[*] Timing updates provided every 120 seconds'
+	nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./nmap/fullscan -iL ./ips.txt | egrep '(remaining|Stats: )'
+	echo '[*] Full Scan Complete - Sorting Output'
 	cat ./nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap > ./nmap/targets/listening_hosts.txt
 	echo '[*] Creating port file for next Nmap scan'
 	cat ./nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./nmap/targets/portfile.txt
 	echo '[*] Port file complete'
-    echo ""
+	echo ""
 
 #Nmap Script/Service Scan only againt listening hosts/ports
 	ports=$(cat ./nmap/targets/portfile.txt)
 	echo '[*] Initiating Script and Service scan of open ports on all responding hosts'
 	echo "[*] Open ports: $ports"
 	echo '[*] Timing updates provided every 60 seconds'
-    nmap -Pn -sC -sV --open --stats-every 60s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
+	nmap -Pn -sC -sV --open --stats-every 60s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
 	echo '[*] Script/Service Scan Complete'
 	echo ""
 
@@ -158,10 +158,10 @@ fi
 #	TODO: Parse these results into GPP recovery script
 
 #SSH Cipher Enumeration
-    echo '[*] Testing SSH Ciphers on port 22'
+	echo '[*] Testing SSH Ciphers on port 22'
 	nmap --script ssh2-enum-algos -iL ./ports/ssh.txt -p 22 -oA ./ssh-ciphers/ciphers
 	echo '[*] SSH Cipher Enumeration Complete'
-    echo ""
+	echo ""
 
 #SSL Cipher Scanning
 	echo '[*] Testing SSL Ciphers on ports 443, 8443, and 3389'
