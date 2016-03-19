@@ -1,7 +1,10 @@
 #!/bin/bash
-#############################
-# Basic initial recon stuff #
-#############################
+###############################
+#  Basic initial recon stuff  #
+# Validates basic "findings"  #
+# All outputs to ./init-recon #
+#  TODO: Better descriptions  #
+###############################
 
 mkdir ./init-recon
 mkdir ./init-recon/nmap
@@ -9,28 +12,32 @@ mkdir ./init-recon/nmap/targets
 mkdir ./init-recon/ports
 mkdir ./init-recon/nikto
 mkdir ./init-recon/initial
+mkdir ./init-recon/medusa
+mkdir ./init-recon/ssh-ciphers
+mkdir ./init-recon/sslciphers
+mkdir ./init-recon/robots
 
 #All TCP ports on all tagets
-        echo '[*] Initiating Full TCP port scan of all targets'
-        echo '[*] Timing updates provided every 120 seconds'
-        nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./nmap/fullscan -iL ./ips.txt | egrep '(remaining|Stats: )'
-        echo '[*] Full Scan Complete - Sorting Output'
+    echo '[*] Initiating Full TCP port scan of all targets'
+    echo '[*] Timing updates provided every 120 seconds'
+    nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./nmap/fullscan -iL ./ips.txt | egrep '(remaining|Stats: )'
+    echo '[*] Full Scan Complete - Sorting Output'
 	cat ./nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap > ./nmap/targets/listening_hosts.txt
 	echo '[*] Creating port file for next Nmap scan'
 	cat ./nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./nmap/targets/portfile.txt
 	echo '[*] Port file complete'
-        echo ""
+    echo ""
 
 #Script/Service Scan
 	ports=$(cat ./nmap/targets/portfile.txt)
 	echo '[*] Initiating Script and Service scan of open ports on all responding hosts'
 	echo "[*] Open ports: $ports"
 	echo '[*] Timing updates provided every 60 seconds'
-        nmap -Pn -sC -sV --open --stats-every 60s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
+    nmap -Pn -sC -sV --open --stats-every 60s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
 	echo '[*] Script/Service Scan Complete'
 	echo ""
 
-#Quick Nmap UDP Scann (500, 161)
+#Quick Nmap UDP Scan (500, 161)
 	echo '[*] Initiating UDP can for 161 and 500'
 	echo '[*] Timing updates provided every 60 seconds'
 	nmap -Pn -sU -sV --open --stats-every 60s -p 161,500 -oA ./nmap/udp -iL ./nmap/targets/listening_hosts | egrep '(remaining|Stats: )'
@@ -49,9 +56,9 @@ mkdir ./init-recon/initial
 	cat ./nmap/fullscan.gnmap | grep '1433/open' | cut -d " " -f 2 > ./ports/mssql.txt
 	cat ./nmap/fullscan.gnmap | grep '3306/open' | cut -d " " -f 2 > ./ports/mysql.txt
 	cat ./nmap/fullscan.gnmap | grep '3389/open' | cut -d " " -f 2 > ./ports/rdp.txt
-	cat ./nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap | sort -u > ./ports/allips.txt
 	cat ./nmap/udp.gnmap | grep '161/open' | cut -d " " -f 2 > ./ports/161.txt
 	cat ./nmap/udp.gnmap | grep '500/open' | cut -d " " -f 2 > ./ports/500.txt
+	cat ./nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap | sort -u > ./ports/allips.txt
 	echo '[*] Sorting Complete'
 	echo ""
 
@@ -62,7 +69,7 @@ mkdir ./init-recon/initial
 	echo ""
 
 #Creating host port table for Report
-	echo '[*] Creating Host/Port table for reporting'
+	echo '[*] Creating Host/Port table'
 	/root/tools/josko_pentest/net_discovery_reporter.rb -f ./nmap/script_service.xml
 	echo '[*] Thanks JoSko! Creation complete, saved to ./Net_Discovery_Report.docx'
 
@@ -84,7 +91,6 @@ mkdir ./init-recon/initial
 
 #Tar'ing up the basics
 	echo '[*] Adding intital results to initial.tar'
-	mkdir initial
 	cp ./nmap ./initial/
 	cp ./Net_Discovery_Report.docx ./initial/
 	cp -R ./eyewitness* ./initial/
@@ -97,25 +103,23 @@ mkdir ./init-recon/initial
 	cd ./nikto
 	
 	#Creating target list
-        echo '[*] Creating target list'
-        for i in $(cat ../ports/80.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-80-nikto.txt" -host http://$i" >> targets.txt; done
-        for i in $(cat ../ports/8080.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:808" >> targets.txt; done
-        for i in $(cat ../ports/443.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-443-nikto.txt" -host https://$i" >> targets.txt; done
-        for i in $(cat ../ports/8443.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-8443-nikto.txt" -host https://$i:8443" >> targets.txt; done
+    echo '[*] Creating target list'
+    for i in $(cat ../ports/80.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-80-nikto.txt" -host http://$i" >> targets.txt; done
+    for i in $(cat ../ports/8080.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:808" >> targets.txt; done
+    for i in $(cat ../ports/443.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-443-nikto.txt" -host https://$i" >> targets.txt; done
+	for i in $(cat ../ports/8443.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-8443-nikto.txt" -host https://$i:8443" >> targets.txt; done
 
 	#Splitting target list and launching backgrounded sessions
-        echo '[*] Splitting targets and launching backgrounded sessions'
-        split -e -n l/5 targets.txt nik2
-        for i in $(ls nik2*);
-                do echo "   [*] Backgrounding Nikto Screen Session: $i"
+    	echo '[*] Splitting targets and launching backgrounded sessions'
+    	split -e -n l/5 targets.txt nik2
+    	for i in $(ls nik2*);
+            do echo "   [*] Backgrounding Nikto Screen Session: $i"
                 screen -dmS $i sh $i;
-        done
-
-        echo '[*] Nikto sessions screened. Continuing additional tests'
-	cd ../
+        	done
+		echo '[*] Nikto sessions screened. Continuing additional tests'
+		cd ../
 
 #Medusa some targets
-	mkdir ./medusa
 	echo '[*] Starting Basic Medusa password guesses'
 	echo '[*] Backgrounding SSH guesses'
 	screen -dmS ssh -m medusa -M ssh -H ./ports/ssh.txt -u root -p Password1 -e ns -O ./medusa/ssh.medusa
@@ -123,28 +127,25 @@ mkdir ./init-recon/initial
 	screen -dmS ssh -m medusa -M ftp -H ./ports/ftp.txt -U /root/wordlists/ftpusers.txt -p Password1 -e ns -O ./medusa/ftp.medusa
 
 #SSH Cipher Enumeration
-        echo '[*] Testing SSH Ciphers on port 22'
-        mkdir ./ssh
-	nmap --script ssh2-enum-algos -iL ./ports/ssh.txt -p 22 -oA ./ssh/ciphers
-        echo ""
+    echo '[*] Testing SSH Ciphers on port 22'
+	nmap --script ssh2-enum-algos -iL ./ports/ssh.txt -p 22 -oA ./ssh-ciphers/ciphers
+    echo ""
 
 #SSL Cipher Scanning
 	echo '[*] Testing SSL Ciphers on ports 443 and 8443'
-	mkdir ./sslciphers
-	for i in $(cat ./ports/443.txt); do java -jar /root/tools/TestSSLServer.jar $i 443 > ./sslciphers/$i.443.txt & echo "[*] $i:443 Complete"; done
-	for i in $(cat ./ports/8443.txt); do java -jar /root/tools/TestSSLServer.jar $i 8443 > ./sslciphers/$i.8443txt & echo "[*] $i:8443 Complete"; done
+	for i in $(cat ./ports/443.txt); do java -jar /root/tools/TestSSLServer.jar $i 443 > ./ssl-ciphers/$i.443.txt && echo "[*] $i:443 Complete"; done
+	for i in $(cat ./ports/8443.txt); do java -jar /root/tools/TestSSLServer.jar $i 8443 > ./ssl-ciphers/$i.8443txt && echo "[*] $i:8443 Complete"; done
 	echo '[*] SSL Cipher Test Complete'
 	echo ""
 
-#Self-Signed Test
-	echo '[*] Testing for Self-Signed SSL Certs on ports 443 and 8443'
-	for i in $(cat ./ports/443.txt); do wget -S https://$i 2>&1 | fgrep -q "Self-signed" && echo "$i:443" >> selfsigned.txt & echo "[*] $i:443 Complete"; done
-	for i in $(cat ./ports/8443.txt); do wget -S https://$i:8443 2>&1 | fgrep -q "Self-signed" && echo "$i:8443" >> selfsigned.txt  & echo "[*] $i:443 Complete"; done
-	echo '[*] Testing for Self-Signed SSL Certs Complete'
-	echo ""
+#Self-Signed Test - Broken, needs fixing
+#	echo '[*] Testing for Self-Signed SSL Certs on ports 443 and 8443'
+#	for i in $(cat ./ports/443.txt); do wget -S https://$i 2>&1 | fgrep -q "Self-signed" && echo "$i:443" >> selfsigned.txt & echo "[*] $i:443 Complete"; done
+#	for i in $(cat ./ports/8443.txt); do wget -S https://$i:8443 2>&1 | fgrep -q "Self-signed" && echo "$i:8443" >> selfsigned.txt  & echo "[*] $i:443 Complete"; done
+#	echo '[*] Testing for Self-Signed SSL Certs Complete'
+#	echo ""
 
 #Checking for robots.txt
-	mkdir ./robots
 	echo '[*] Checking for robots.txt on common http(s) ports'
 
 	#Checking hosts with 80 open
@@ -169,49 +170,47 @@ mkdir ./init-recon/initial
 	echo '[*] Testing common http(s) ports for TRACE'
 	#80
 	for i in $(cat ./ports/80.txt);
-        	do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 80" | tee -a trace_results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" http://$i/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0mTrace successful for $i on port 80" | tee -a trace_results.txt
+    	do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 80" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" http://$i/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0mTrace successful for $i on port 80" | tee -a trace_results.txt
 	done
 	#443
 	for i in $(cat ./ports/443.txt);
-	do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 443" | tee -a trace_results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" https://$i/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 443" | tee -a trace_results.txt
+		do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 443" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" https://$i/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 443" | tee -a trace_results.txt
 	done
 	#8080
 	for i in $(cat ./ports/8080.txt);
-        do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 8080" | tee -a trace_results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" http://$i:8080/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8080" | tee -a trace_results.txt
+        do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 8080" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" http://$i:8080/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8080" | tee -a trace_results.txt
 	done
 	#8443
 	for i in $(cat ./ports/8443.txt);
-        do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 8443" | tee -a trace_results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" https://$i:8443/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8443" | tee -a trace_results.txt
+        do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 8443" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" https://$i:8443/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8443" | tee -a trace_results.txt
 	done
 
 #IKE VPN stuff
-sudo -v
-echo -e "[*] Running IKE tests.. "
-# Encryption algorithms: DES, Triple-DES, AES/128, AES/192 and AES/256
-ENCLIST="1 5 7/128 7/192 7/256"
-# Hash algorithms: MD5 and SHA1
-HASHLIST="1 2"
-# Authentication methods: Pre-Shared Key, RSA Signatures, Hybrid Mode and XAUTH
-AUTHLIST="1 3 64221 65001"
-# Diffie-Hellman groups: 1, 2 and 5
-GROUPLIST="1 2 5"
-#
-trans=""
-for ENC in $ENCLIST; do
-   for HASH in $HASHLIST; do
-      for AUTH in $AUTHLIST; do
-         for GROUP in $GROUPLIST; do
-            trans="$trans $ENC,$HASH,$AUTH,$GROUP"
-         done
-      done
-   done
-done
+	sudo -v
+	echo -e "[*] Running IKE tests.. "
+	# Encryption algorithms: DES, Triple-DES, AES/128, AES/192 and AES/256
+	ENCLIST="1 5 7/128 7/192 7/256"
+	# Hash algorithms: MD5 and SHA1
+	HASHLIST="1 2"
+	# Authentication methods: Pre-Shared Key, RSA Signatures, Hybrid Mode and XAUTH
+	AUTHLIST="1 3 64221 65001"
+	# Diffie-Hellman groups: 1, 2 and 5
+	GROUPLIST="1 2 5"
+	#
+	trans=""
+	for ENC in $ENCLIST; do
+	   for HASH in $HASHLIST; do
+	    	for AUTH in $AUTHLIST; do
+	        	for GROUP in $GROUPLIST; do
+	            	trans="$trans $ENC,$HASH,$AUTH,$GROUP"
+	    		done
+	    	done
+	   done
+	done
 
-mkdir -p ike_results
-
-for b in $(cat ./ports/allips.txt); do
-        echo -e "[*] Testing $b for Aggressive mode" 
-        for i in $trans;  do
-                 sudo ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b | fgrep -q "Aggressive Mode Handshake returned" && echo -e "[*] --trans=$i Returned Aggressive Mode Handshake - Writing PSK to ike_results/$b.psk" && echo "ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b" >>  ike_results/results.txt
-        done
-done
+	for b in $(cat ./ports/500.txt); do
+    	echo -e "[*] Testing $b for Aggressive mode" 
+        	for i in $trans;  do
+            	sudo ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b | fgrep -q "Aggressive Mode Handshake returned" && echo -e "[*] --trans=$i Returned Aggressive Mode Handshake - Writing PSK to ike_results/$b.psk" && echo "ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b" >>  ike_results/results.txt
+        	done
+    done
