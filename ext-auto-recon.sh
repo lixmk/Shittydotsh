@@ -37,22 +37,22 @@ mkdir ./ext-auto-recon/robots
 cd ./ext-auto-recon/
 
 #All TCP ports on all tagets
-    echo '[*] Initiating Full TCP port scan of all targets'
-    echo '[*] Timing updates provided every 120 seconds'
-    nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./nmap/fullscan -iL ./ips.txt | egrep '(remaining|Stats: )'
-    echo '[*] Full Scan Complete - Sorting Output'
+	echo '[*] Initiating Full TCP port scan of all targets'
+	echo '[*] Timing updates provided every 120 seconds'
+	nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./nmap/fullscan -iL ./ips.txt | egrep '(remaining|Stats: )'
+	echo '[*] Full Scan Complete - Sorting Output'
 	cat ./nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap > ./nmap/targets/listening_hosts.txt
 	echo '[*] Creating port file for next Nmap scan'
 	cat ./nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./nmap/targets/portfile.txt
 	echo '[*] Port file complete'
-    echo ""
+	echo ""
 
 #Script/Service Scan
 	ports=$(cat ./nmap/targets/portfile.txt)
 	echo '[*] Initiating Script and Service scan of open ports on all responding hosts'
 	echo "[*] Open ports: $ports"
 	echo '[*] Timing updates provided every 120 seconds'
-    nmap -Pn -sC -sV --open --stats-every 120s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
+	nmap -Pn -sC -sV --open --stats-every 120s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
 	echo '[*] Script/Service Scan Complete'
 	echo ""
 
@@ -120,31 +120,31 @@ cd ./ext-auto-recon/
 
 #Launching Nikto against valid targets
 	cd ./nikto
-	
+
 	#Creating target list
-    echo '[*] Creating target list'
-    for i in $(cat ../ports/80.txt); do
-    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-80-nikto.txt" -host http://$i" >> targets.txt;
-    done
-    for i in $(cat ../ports/8080.txt); do
-    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:8080" >> targets.txt;
-    done
-    for i in $(cat ../ports/443.txt); do
-    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-443-nikto.txt" -host https://$i" >> targets.txt;
-    done
+	echo '[*] Creating target list'
+	for i in $(cat ../ports/80.txt); do
+		echo "nikto -Tuning x6 -maxtime 60m -output "$i-80-nikto.txt" -host http://$i" >> targets.txt;
+	done
+	for i in $(cat ../ports/8080.txt); do
+		echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:8080" >> targets.txt;
+	done
+	for i in $(cat ../ports/443.txt); do
+		echo "nikto -Tuning x6 -maxtime 60m -output "$i-443-nikto.txt" -host https://$i" >> targets.txt;
+	done
 	for i in $(cat ../ports/8443.txt); do
 		echo "nikto -Tuning x6 -maxtime 60m -output "$i-8443-nikto.txt" -host https://$i:8443" >> targets.txt;
 	done
 
 	#Splitting target list and launching backgrounded sessions
-    	echo '[*] Splitting targets and launching backgrounded sessions'
-    	split -e -n l/5 targets.txt nik2
-    	for i in $(ls nik2*);
-            do echo "   [*] Backgrounding Nikto Screen Session: $i"
-                screen -dmS $i sh $i;
-        	done
+		echo '[*] Splitting targets and launching backgrounded sessions'
+		split -e -n l/5 targets.txt nik2
+		for i in $(ls nik2*); do
+			echo "   [*] Backgrounding Nikto Screen Session: $i"
+			screen -dmS $i sh $i;
+		done
 		echo '[*] Nikto sessions screened. Continuing additional tests'
-		cd ../
+	cd ../
 
 #Medusa some targets
 	echo '[*] Starting Basic Medusa password guesses'
@@ -154,9 +154,10 @@ cd ./ext-auto-recon/
 	screen -dmS ssh -m medusa -M ftp -H ./ports/ftp.txt -U /root/wordlists/ftpusers.txt -p Password1 -e ns -O ./medusa/ftp.medusa
 
 #SSH Cipher Enumeration
-    echo '[*] Testing SSH Ciphers on port 22'
+	echo '[*] Testing SSH Ciphers on port 22'
 	nmap --script ssh2-enum-algos -iL ./ports/ssh.txt -p 22 -oA ./ssh-ciphers/ciphers
-    echo ""
+	echo '[*] SSH Cipher Enumeration Complete'
+	echo ""
 
 #SSL Cipher Scanning
 	echo '[*] Testing SSL Ciphers on ports 443 and 8443'
@@ -171,7 +172,6 @@ cd ./ext-auto-recon/
 
 #Checking for robots.txt
 	echo '[*] Checking for robots.txt on common http(s) ports'
-
 	#Checking hosts with 80 open
 	echo '[*]Checking for robots.txt on port 80'
 	for i in $(cat ./ports/80.txt); do
@@ -201,20 +201,20 @@ cd ./ext-auto-recon/
 #Checking common http(s) ports for TRACE
 	echo '[*] Testing common http(s) ports for TRACE'
 	#80
-	for i in $(cat ./ports/80.txt);
-    	do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" http://$i/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0mTrace successful for $i on port 80" | tee -a trace_results.txt
+	for i in $(cat ./ports/80.txt); do
+		curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" http://$i/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0mTrace successful for $i on port 80" | tee -a trace_results.txt
 	done
 	#443
-	for i in $(cat ./ports/443.txt);
-		do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" https://$i/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 443" | tee -a trace_results.txt
+	for i in $(cat ./ports/443.txt); do 
+		curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" https://$i/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 443" | tee -a trace_results.txt
 	done
 	#8080
-	for i in $(cat ./ports/8080.txt);
-        do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" http://$i:8080/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8080" | tee -a trace_results.txt
+	for i in $(cat ./ports/8080.txt); do
+		curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" http://$i:8080/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8080" | tee -a trace_results.txt
 	done
 	#8443
-	for i in $(cat ./ports/8443.txt);
-        do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" https://$i:8443/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8443" | tee -a trace_results.txt
+	for i in $(cat ./ports/8443.txt); do 
+		curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" https://$i:8443/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8443" | tee -a trace_results.txt
 	done
 
 #IKE VPN stuff
@@ -232,18 +232,18 @@ cd ./ext-auto-recon/
 	trans=""
 	for ENC in $ENCLIST; do
 		for HASH in $HASHLIST; do
-	    	for AUTH in $AUTHLIST; do
-	        	for GROUP in $GROUPLIST; do
-	            	trans="$trans $ENC,$HASH,$AUTH,$GROUP"
-	    		done
-	    	done
+			for AUTH in $AUTHLIST; do
+	        		for GROUP in $GROUPLIST; do
+	            			trans="$trans $ENC,$HASH,$AUTH,$GROUP"
+	    			done
+			done
 		done
 	done
 
 	for b in $(cat ./ports/500.txt); do
     	echo -e "[*] Testing $b for Aggressive mode" 
-        for i in $trans;  do
-            sudo ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b | fgrep -q "Aggressive Mode Handshake returned" && echo -e "[*] --trans=$i Returned Aggressive Mode Handshake - Writing PSK to ike_results/$b.psk" && echo "ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b" >>  ike_results/results.txt
+        for i in $trans; do
+			sudo ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b | fgrep -q "Aggressive Mode Handshake returned" && echo -e "[*] --trans=$i Returned Aggressive Mode Handshake - Writing PSK to ike_results/$b.psk" && echo "ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b" >>  ike_results/results.txt
         done
 	done
 cd ../
