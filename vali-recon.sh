@@ -17,6 +17,8 @@ mkdir ./init-recon/ssh-ciphers
 mkdir ./init-recon/sslciphers
 mkdir ./init-recon/robots
 
+cd ./init-recon/
+
 #All TCP ports on all tagets
     echo '[*] Initiating Full TCP port scan of all targets'
     echo '[*] Timing updates provided every 120 seconds'
@@ -170,19 +172,19 @@ mkdir ./init-recon/robots
 	echo '[*] Testing common http(s) ports for TRACE'
 	#80
 	for i in $(cat ./ports/80.txt);
-    	do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 80" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" http://$i/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0mTrace successful for $i on port 80" | tee -a trace_results.txt
+    	do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" http://$i/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0mTrace successful for $i on port 80" | tee -a trace_results.txt
 	done
 	#443
 	for i in $(cat ./ports/443.txt);
-		do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 443" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" https://$i/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 443" | tee -a trace_results.txt
+		do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" https://$i/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 443" | tee -a trace_results.txt
 	done
 	#8080
 	for i in $(cat ./ports/8080.txt);
-        do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 8080" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" http://$i:8080/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8080" | tee -a trace_results.txt
+        do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" http://$i:8080/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8080" | tee -a trace_results.txt
 	done
 	#8443
 	for i in $(cat ./ports/8443.txt);
-        do echo -e "\e[1;34m[*]\e[0mTesting Trace for $i on port 8443" | tee -a trace-results.txt && curl -k -i -s -X TRACE -H "Cookie: Trustwave=SpiderLabs" -H "Header: Proof_Of_Concept" https://$i:8443/ | fgrep -q "Trustwave=SpiderLabs" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8443" | tee -a trace_results.txt
+        do curl -k -i -s -X TRACE -H "Cookie: Hail=Spydra" -H "Header: Proof_Of_Concept" https://$i:8443/ | fgrep -q "Cookie: Hail=Spydra" && echo -e "\e[1;31m[Success]\e[0m Trace successful for $i on port 8443" | tee -a trace_results.txt
 	done
 
 #IKE VPN stuff
@@ -210,7 +212,10 @@ mkdir ./init-recon/robots
 
 	for b in $(cat ./ports/500.txt); do
     	echo -e "[*] Testing $b for Aggressive mode" 
-        	for i in $trans;  do
-            	sudo ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b | fgrep -q "Aggressive Mode Handshake returned" && echo -e "[*] --trans=$i Returned Aggressive Mode Handshake - Writing PSK to ike_results/$b.psk" && echo "ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b" >>  ike_results/results.txt
-        	done
+        for i in $trans;  do
+            sudo ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b | fgrep -q "Aggressive Mode Handshake returned" && echo -e "[*] --trans=$i Returned Aggressive Mode Handshake - Writing PSK to ike_results/$b.psk" && echo "ike-scan --trans=$i -r 1 -A -M --id=admin --pskcrack=ike_results/$b.psk $b" >>  ike_results/results.txt
+        done
+	done
+cd ../
+#Done
     done
