@@ -16,7 +16,7 @@ echo " "
 EXPECTED_ARGS=1;
 if [ $# -ne $EXPECTED_ARGS ]
 then
-  echo "Usage: `basename $0` <target IP list (nmap format)>"
+  echo "Usage: `basename $0` <target file (nmap format)>"
   exit 1
 fi
 
