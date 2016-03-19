@@ -13,6 +13,13 @@ echo "#        This script can take a while, it's suggested to run within screen
 echo "###################################################################################"
 echo " "
 
+EXPECTED_ARGS=1;
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` <target IP list (nmap format)>"
+  exit 1
+fi
+
 mkdir ./ext-auto-recon
 mkdir ./ext-auto-recon/nmap
 mkdir ./ext-auto-recon/nmap/targets
