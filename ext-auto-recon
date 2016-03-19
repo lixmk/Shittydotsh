@@ -1,23 +1,30 @@
 #!/bin/bash
-###############################
-#  Basic initial recon stuff  #
-# Validates basic "findings"  #
-# All outputs to ./init-recon #
-#  TODO: Better descriptions  #
-###############################
+echo " "
+echo "###################################################################################"
+echo "# ext-auto-recon.sh performs recon, enumeration, and vulnerability identification #"
+echo "#                                                                                 #"
+echo "#             WARNING: This is NOT QUIET. In fact, it's FUCKING LOUD.             #"
+echo "#             WARNING: This is NOT QUIET. In fact, it's FUCKING LOUD.             #"
+echo "#             WARNING: This is NOT QUIET. In fact, it's FUCKING LOUD.             #"
+echo "#                            (Not for convert testing)                            #"
+echo "#                                                                                 #"
+echo "#        Please check the readme for a list of tools used and dependacies.        #"
+echo "#        This script can take a while, it's suggested to run within screen        #"
+echo "###################################################################################"
+echo " "
 
-mkdir ./init-recon
-mkdir ./init-recon/nmap
-mkdir ./init-recon/nmap/targets
-mkdir ./init-recon/ports
-mkdir ./init-recon/nikto
-mkdir ./init-recon/initial
-mkdir ./init-recon/medusa
-mkdir ./init-recon/ssh-ciphers
-mkdir ./init-recon/sslciphers
-mkdir ./init-recon/robots
+mkdir ./ext-auto-recon
+mkdir ./ext-auto-recon/nmap
+mkdir ./ext-auto-recon/nmap/targets
+mkdir ./ext-auto-recon/ports
+mkdir ./ext-auto-recon/nikto
+mkdir ./ext-auto-recon/initial
+mkdir ./ext-auto-recon/medusa
+mkdir ./ext-auto-recon/ssh-ciphers
+mkdir ./ext-auto-recon/sslciphers
+mkdir ./ext-auto-recon/robots
 
-cd ./init-recon/
+cd ./ext-auto-recon/
 
 #All TCP ports on all tagets
     echo '[*] Initiating Full TCP port scan of all targets'
@@ -34,8 +41,8 @@ cd ./init-recon/
 	ports=$(cat ./nmap/targets/portfile.txt)
 	echo '[*] Initiating Script and Service scan of open ports on all responding hosts'
 	echo "[*] Open ports: $ports"
-	echo '[*] Timing updates provided every 60 seconds'
-    nmap -Pn -sC -sV --open --stats-every 60s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
+	echo '[*] Timing updates provided every 120 seconds'
+    nmap -Pn -sC -sV --open --stats-every 120s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
 	echo '[*] Script/Service Scan Complete'
 	echo ""
 
@@ -106,10 +113,18 @@ cd ./init-recon/
 	
 	#Creating target list
     echo '[*] Creating target list'
-    for i in $(cat ../ports/80.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-80-nikto.txt" -host http://$i" >> targets.txt; done
-    for i in $(cat ../ports/8080.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:808" >> targets.txt; done
-    for i in $(cat ../ports/443.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-443-nikto.txt" -host https://$i" >> targets.txt; done
-	for i in $(cat ../ports/8443.txt); do echo "nikto -Tuning x6 -maxtime 60m -output "$i-8443-nikto.txt" -host https://$i:8443" >> targets.txt; done
+    for i in $(cat ../ports/80.txt); do
+    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-80-nikto.txt" -host http://$i" >> targets.txt;
+    done
+    for i in $(cat ../ports/8080.txt); do
+    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:808" >> targets.txt;
+    done
+    for i in $(cat ../ports/443.txt); do
+    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-443-nikto.txt" -host https://$i" >> targets.txt;
+    done
+	for i in $(cat ../ports/8443.txt); do
+		echo "nikto -Tuning x6 -maxtime 60m -output "$i-8443-nikto.txt" -host https://$i:8443" >> targets.txt;
+	done
 
 	#Splitting target list and launching backgrounded sessions
     	echo '[*] Splitting targets and launching backgrounded sessions'
@@ -135,36 +150,41 @@ cd ./init-recon/
 
 #SSL Cipher Scanning
 	echo '[*] Testing SSL Ciphers on ports 443 and 8443'
-	for i in $(cat ./ports/443.txt); do java -jar /root/tools/TestSSLServer.jar $i 443 > ./ssl-ciphers/$i.443.txt && echo "[*] $i:443 Complete"; done
-	for i in $(cat ./ports/8443.txt); do java -jar /root/tools/TestSSLServer.jar $i 8443 > ./ssl-ciphers/$i.8443txt && echo "[*] $i:8443 Complete"; done
+	for i in $(cat ./ports/443.txt); do
+		java -jar /root/tools/TestSSLServer.jar $i 443 > ./ssl-ciphers/$i.443.txt && echo "[*] $i:443 Complete";
+	done
+	for i in $(cat ./ports/8443.txt); do
+		java -jar /root/tools/TestSSLServer.jar $i 8443 > ./ssl-ciphers/$i.8443txt && echo "[*] $i:8443 Complete";
+	done
 	echo '[*] SSL Cipher Test Complete'
 	echo ""
-
-#Self-Signed Test - Broken, needs fixing
-#	echo '[*] Testing for Self-Signed SSL Certs on ports 443 and 8443'
-#	for i in $(cat ./ports/443.txt); do wget -S https://$i 2>&1 | fgrep -q "Self-signed" && echo "$i:443" >> selfsigned.txt & echo "[*] $i:443 Complete"; done
-#	for i in $(cat ./ports/8443.txt); do wget -S https://$i:8443 2>&1 | fgrep -q "Self-signed" && echo "$i:8443" >> selfsigned.txt  & echo "[*] $i:443 Complete"; done
-#	echo '[*] Testing for Self-Signed SSL Certs Complete'
-#	echo ""
 
 #Checking for robots.txt
 	echo '[*] Checking for robots.txt on common http(s) ports'
 
 	#Checking hosts with 80 open
 	echo '[*]Checking for robots.txt on port 80'
-	for i in $(cat ./ports/80.txt); do wget --max-redirect 0 -q -t 1 -T 3 -O ./robots/$i-80 http://$i/robots.txt && fgrep -q "Disallow" ./robots/$i-80 || rm ./robots/$i-80; sed -i "1s/^/$i:80\n/" ./robots/$i-80 2> /dev/null && echo "   [*]Robots.txt found for $i:80"; done
+	for i in $(cat ./ports/80.txt); do
+		wget --max-redirect 0 -q -t 1 -T 3 -O ./robots/$i-80 http://$i/robots.txt && fgrep -q "Disallow" ./robots/$i-80 || rm ./robots/$i-80; sed -i "1s/^/$i:80\n/" ./robots/$i-80 2> /dev/null && echo "   [*]Robots.txt found for $i:80";
+	done
 
 	#Checking hosts with 443 open
 	echo '[*]Checking for robots.txt on port 443'
-	for i in $(cat ./ports/443.txt); do wget --max-redirect 0 --no-check-certificate -q -t 1 -T 3 -O ./robots/$i-443 https://$i/robots.txt && fgrep -q "Disallow" ./robots/$i-443 || rm ./robots/$i-443; sed -i "1s/^/$i:443\n/" ./robots/$i-443 2> /dev/null && echo "   [*]Robots.txt found for $i:443"; done
+	for i in $(cat ./ports/443.txt); do
+		wget --max-redirect 0 --no-check-certificate -q -t 1 -T 3 -O ./robots/$i-443 https://$i/robots.txt && fgrep -q "Disallow" ./robots/$i-443 || rm ./robots/$i-443; sed -i "1s/^/$i:443\n/" ./robots/$i-443 2> /dev/null && echo "   [*]Robots.txt found for $i:443";
+	done
 
 	#Checking hosts with 8080 open
 	echo '[*]Checking for robots.txt on port 8080'
-	for i in $(cat ./ports/8080.txt); do wget --max-redirect 0 -q -t 1 -T 3 -O ./robots/$i-8080 http://$i:8080/robots.txt && fgrep -q "Disallow" ./robots/$i-8080 || rm ./robots/$i-8080; sed -i "1s/^/$i:8080\n/" ./robots/$i-8080 2> /dev/null && echo "   [*]Robots.txt found for $i:8080"; done
+	for i in $(cat ./ports/8080.txt); do
+		wget --max-redirect 0 -q -t 1 -T 3 -O ./robots/$i-8080 http://$i:8080/robots.txt && fgrep -q "Disallow" ./robots/$i-8080 || rm ./robots/$i-8080; sed -i "1s/^/$i:8080\n/" ./robots/$i-8080 2> /dev/null && echo "   [*]Robots.txt found for $i:8080";
+	done
 
 	#Checking hosts with 8443 open
 	echo '[*]Checking for robots.txt on port 8443'
-	for i in $(cat ./ports/8443.txt); do wget --max-redirect 0 --no-check-certificate -t 1 -T 3 --read-timeout=3 -O ./robots/$i-8443 https://$i:8443/robots.txt && fgrep -q "Disallow" ./robots/$i-8443 || rm ./robots/$i-8443; sed -i "1s/^/$i:8443\n/" ./robots/$i-8443 2> /dev/null && echo "   [*]Robots.txt found for $i:8443"; done
+	for i in $(cat ./ports/8443.txt); do
+		wget --max-redirect 0 --no-check-certificate -t 1 -T 3 --read-timeout=3 -O ./robots/$i-8443 https://$i:8443/robots.txt && fgrep -q "Disallow" ./robots/$i-8443 || rm ./robots/$i-8443; sed -i "1s/^/$i:8443\n/" ./robots/$i-8443 2> /dev/null && echo "   [*]Robots.txt found for $i:8443";
+	done
 	echo '[*] robots.txt tests complete'
 	echo ""
 	
@@ -201,13 +221,13 @@ cd ./init-recon/
 	#
 	trans=""
 	for ENC in $ENCLIST; do
-	   for HASH in $HASHLIST; do
+		for HASH in $HASHLIST; do
 	    	for AUTH in $AUTHLIST; do
 	        	for GROUP in $GROUPLIST; do
 	            	trans="$trans $ENC,$HASH,$AUTH,$GROUP"
 	    		done
 	    	done
-	   done
+		done
 	done
 
 	for b in $(cat ./ports/500.txt); do
@@ -217,5 +237,11 @@ cd ./init-recon/
         done
 	done
 cd ../
-#Done
-    done
+
+#Testing Complete
+#TODO - Consider leaving script live until all nikto sessions are completed
+#TODO - If above completed, merge post-nikto.sh to ext-auto-recon
+echo '[*] Most tests complete. Results written to ./ext-auto-recon'
+echo '[*] Nikto sessions may still be running. Comfirm with "screen -dr nikto"'
+echo '[*] Once all Nikto sessions are complete, consider running "post-nikto.sh'
+echo "[*] Or don't, I don't care"
