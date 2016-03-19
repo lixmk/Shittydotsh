@@ -1,4 +1,7 @@
 #!/bin/bash
+# Mike Kelly
+# @lixmk
+# http://exfil.co
 echo " "
 echo "###################################################################################"
 echo "# ext-auto-recon.sh performs recon, enumeration, and vulnerability identification #"
@@ -16,8 +19,8 @@ echo " "
 EXPECTED_ARGS=1;
 if [ $# -ne $EXPECTED_ARGS ]
 then
-  echo "Usage: `basename $0` <target file (nmap format)>"
-  exit 1
+	echo "Usage: `basename $0` <target file (nmap format)>"
+	exit 1
 fi
 
 mkdir ./ext-auto-recon
