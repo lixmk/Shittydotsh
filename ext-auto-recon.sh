@@ -124,7 +124,7 @@ cd ./ext-auto-recon/
     	echo "nikto -Tuning x6 -maxtime 60m -output "$i-80-nikto.txt" -host http://$i" >> targets.txt;
     done
     for i in $(cat ../ports/8080.txt); do
-    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:808" >> targets.txt;
+    	echo "nikto -Tuning x6 -maxtime 60m -output "$i-8080-nikto.txt" -host http://$i:8080" >> targets.txt;
     done
     for i in $(cat ../ports/443.txt); do
     	echo "nikto -Tuning x6 -maxtime 60m -output "$i-443-nikto.txt" -host https://$i" >> targets.txt;
