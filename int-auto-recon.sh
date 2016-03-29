@@ -125,7 +125,7 @@ fi
 	echo ""
 
 	echo '[*] Launching EyeWitness for VNC'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --web --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --vnc --no-prompt
 	echo '[*] EyeWitness for VNC Complete'
 	echo ""
 
