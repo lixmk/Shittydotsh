@@ -91,6 +91,7 @@ fi
 	cat ./nmap/fullscan.gnmap | grep '53/open' | cut -d " " -f 2 > ./ports/dns.txt
 	cat ./nmap/fullscan.gnmap | grep '80/open' | cut -d " " -f 2 > ./ports/80.txt
 	cat ./nmap/fullscan.gnmap | grep '443/open' | cut -d " " -f 2 > ./ports/443.txt
+	cat ./nmap/fullscan.gnmap | grep '445/open' | cut -d " " -f 2 > ./ports/445.txt
 	cat ./nmap/fullscan.gnmap | grep '8080/open' | cut -d " " -f 2 > ./ports/8080.txt
 	cat ./nmap/fullscan.gnmap | grep '8443/open' | cut -d " " -f 2 > ./ports/8443.txt
 	cat ./nmap/fullscan.gnmap | grep '1433/open' | cut -d " " -f 2 > ./ports/mssql.txt
