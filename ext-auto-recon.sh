@@ -2,6 +2,7 @@
 # Mike Kelly
 # @lixmk
 # http://exfil.co
+
 echo " "
 echo "###################################################################################"
 echo "# ext-auto-recon.sh performs recon, enumeration, and vulnerability identification #"
@@ -31,19 +32,17 @@ mkdir ./ext-auto-recon/nikto
 mkdir ./ext-auto-recon/initial
 mkdir ./ext-auto-recon/medusa
 mkdir ./ext-auto-recon/ssh-ciphers
-mkdir ./ext-auto-recon/sslciphers
+mkdir ./ext-auto-recon/ssl-ciphers
 mkdir ./ext-auto-recon/robots
-
-cd ./ext-auto-recon/
 
 #All TCP ports on all tagets
 	echo '[*] Initiating Full TCP port scan of all targets'
 	echo '[*] Timing updates provided every 120 seconds'
-	nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./nmap/fullscan -iL ./ips.txt | egrep '(remaining|Stats: )'
+	nmap -Pn --stats-every 120s --max-rtt-timeout 250ms --max-retries 3 --open --top-ports=65535 -oA ./ext-auto-recon/nmap/fullscan -iL $1 | egrep '(remaining|Stats: )'
 	echo '[*] Full Scan Complete - Sorting Output'
-	cat ./nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap > ./nmap/targets/listening_hosts.txt
+	cat ./ext-auto-recon/nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap > ./ext-auto-recon/nmap/targets/listening_hosts.txt
 	echo '[*] Creating port file for next Nmap scan'
-	cat ./nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./nmap/targets/portfile.txt
+	cat ./ext-auto-recon/nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./nmap/targets/portfile.txt
 	echo '[*] Port file complete'
 	echo ""
 
@@ -52,18 +51,19 @@ cd ./ext-auto-recon/
 	echo '[*] Initiating Script and Service scan of open ports on all responding hosts'
 	echo "[*] Open ports: $ports"
 	echo '[*] Timing updates provided every 120 seconds'
-	nmap -Pn -sC -sV --open --stats-every 120s -oA ./nmap/script_service -iL ./nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
+	nmap -Pn -sC -sV --open --stats-every 120s -oA ./ext-auto-recon/nmap/script_service -iL ./ext-auto-recon/nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
 	echo '[*] Script/Service Scan Complete'
 	echo ""
 
 #Quick Nmap UDP Scan (500, 161)
 	echo '[*] Initiating UDP can for 161 and 500'
 	echo '[*] Timing updates provided every 60 seconds'
-	nmap -Pn -sU -sV --open --stats-every 60s -p 161,500 -oA ./nmap/udp -iL ./nmap/targets/listening_hosts | egrep '(remaining|Stats: )'
+	nmap -Pn -sU -sV --open --stats-every 60s -p 161,500 -oA ./ext-auto-recon/nmap/udp -iL ./ext-auto-recon/nmap/targets/listening_hosts | egrep '(remaining|Stats: )'
 	echo '[*] UDP scan complete'
 	echo ""
 
 #Sorting Nmap Outputs
+	cd ./ext-auto-recon/
 	echo '[*] Sorting nmap output'
 	cat ./nmap/fullscan.gnmap | grep '21/open' | cut -d " " -f 2 > ./ports/ftp.txt
 	cat ./nmap/fullscan.gnmap | grep '22/open' | cut -d " " -f 2 > ./ports/ssh.txt
@@ -104,7 +104,7 @@ cd ./ext-auto-recon/
 	echo ""
 
 	echo '[*] Launching EyeWitness for VNC'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --web --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --vnc --no-prompt
 	echo '[*] EyeWitness for VNC Complete'
 	echo ""
 
@@ -155,7 +155,8 @@ cd ./ext-auto-recon/
 
 #SSH Cipher Enumeration
 	echo '[*] Testing SSH Ciphers on port 22'
-	nmap --script ssh2-enum-algos -iL ./ports/ssh.txt -p 22 -oA ./ssh-ciphers/ciphers
+	echo '[*] Timing updates provided every 60 seconds'
+	nmap --script ssh2-enum-algos --stats-every 60s -iL ./ports/ssh.txt -p 22 -oA ./ssh-ciphers/ciphers | egrep '(remaining|Stats: )'
 	echo '[*] SSH Cipher Enumeration Complete'
 	echo ""
 
