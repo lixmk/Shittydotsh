@@ -1,9 +1,12 @@
 #!/bin/bash
 #Mike Kelly
 #@lixmk
+#http://exfil.co
+
 #	TODO: Check dependancies
 #	TODO: Install missing dependancies
 #	TODO: Make sure I'm spelling dependancies correctly
+
 echo " "
 echo "###################################################################################"
 echo "# int-auto-recon.sh performs recon, enumeration, and vulnerability identification #"
