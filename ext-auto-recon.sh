@@ -56,25 +56,25 @@ mkdir ./ext-auto-recon/robots
 	echo ""
 
 #Quick Nmap UDP Scan (500, 161)
-	echo '[*] Initiating UDP can for 161 and 500'
+	echo '[*] Initiating UDP can for 161, 500, and 4070 (HID discoveryd)'
 	echo '[*] Timing updates provided every 60 seconds'
-	nmap -Pn -sU -sV --open --stats-every 60s -p 161,500 -oA ./ext-auto-recon/nmap/udp -iL ./ext-auto-recon/nmap/targets/listening_hosts | egrep '(remaining|Stats: )'
+	nmap -Pn -sU -sV --open --stats-every 60s -p 161,500,4070 -oA ./ext-auto-recon/nmap/udp -iL ./ext-auto-recon/nmap/targets/listening_hosts | egrep '(remaining|Stats: )'
 	echo '[*] UDP scan complete'
 	echo ""
 
 #Sorting Nmap Outputs
 	cd ./ext-auto-recon/
 	echo '[*] Sorting nmap output'
-	cat ./nmap/fullscan.gnmap | grep '21/open' | cut -d " " -f 2 > ./ports/ftp.txt
-	cat ./nmap/fullscan.gnmap | grep '22/open' | cut -d " " -f 2 > ./ports/ssh.txt
-	cat ./nmap/fullscan.gnmap | grep '23/open' | cut -d " " -f 2 > ./ports/telnet.txt
+	cat ./nmap/fullscan.gnmap | grep '21/open' | cut -d " " -f 2 > ./ports/21.txt
+	cat ./nmap/fullscan.gnmap | grep '22/open' | cut -d " " -f 2 > ./ports/22.txt
+	cat ./nmap/fullscan.gnmap | grep '23/open' | cut -d " " -f 2 > ./ports/23.txt
 	cat ./nmap/fullscan.gnmap | grep '80/open' | cut -d " " -f 2 > ./ports/80.txt
 	cat ./nmap/fullscan.gnmap | grep '443/open' | cut -d " " -f 2 > ./ports/443.txt
 	cat ./nmap/fullscan.gnmap | grep '8080/open' | cut -d " " -f 2 > ./ports/8080.txt
 	cat ./nmap/fullscan.gnmap | grep '8443/open' | cut -d " " -f 2 > ./ports/8443.txt
-	cat ./nmap/fullscan.gnmap | grep '1433/open' | cut -d " " -f 2 > ./ports/mssql.txt
-	cat ./nmap/fullscan.gnmap | grep '3306/open' | cut -d " " -f 2 > ./ports/mysql.txt
-	cat ./nmap/fullscan.gnmap | grep '3389/open' | cut -d " " -f 2 > ./ports/rdp.txt
+	cat ./nmap/fullscan.gnmap | grep '1433/open' | cut -d " " -f 2 > ./ports/1433.txt
+	cat ./nmap/fullscan.gnmap | grep '3306/open' | cut -d " " -f 2 > ./ports/3306.txt
+	cat ./nmap/fullscan.gnmap | grep '3389/open' | cut -d " " -f 2 > ./ports/3389.txt
 	cat ./nmap/udp.gnmap | grep '161/open' | cut -d " " -f 2 > ./ports/161.txt
 	cat ./nmap/udp.gnmap | grep '500/open' | cut -d " " -f 2 > ./ports/500.txt
 	cat ./nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap | sort -u > ./ports/allips.txt
@@ -149,28 +149,40 @@ mkdir ./ext-auto-recon/robots
 #Medusa some targets
 	echo '[*] Starting Basic Medusa password guesses'
 	echo '[*] Backgrounding SSH guesses'
-	screen -dmS ssh -m medusa -M ssh -H ./ports/ssh.txt -u root -p Password1 -e ns -O ./medusa/ssh.medusa
+	screen -dmS ssh -m medusa -M ssh -H ./ports/22.txt -u root -p Password1 -e ns -O ./medusa/ssh.medusa
 	echo '[*] Backgrounding FTP guesses'
-	screen -dmS ssh -m medusa -M ftp -H ./ports/ftp.txt -U /root/wordlists/ftpusers.txt -p Password1 -e ns -O ./medusa/ftp.medusa
+	screen -dmS ssh -m medusa -M ftp -H ./ports/21.txt -U /root/wordlists/ftpusers.txt -p Password1 -e ns -O ./medusa/ftp.medusa
 
 #SSH Cipher Enumeration
 	echo '[*] Testing SSH Ciphers on port 22'
 	echo '[*] Timing updates provided every 60 seconds'
-	nmap --script ssh2-enum-algos --stats-every 60s -iL ./ports/ssh.txt -p 22 -oA ./ssh-ciphers/ciphers | egrep '(remaining|Stats: )'
+	nmap --script ssh2-enum-algos --stats-every 60s -iL ./ports/22.txt -p 22 -oA ./ssh-ciphers/ciphers | egrep '(remaining|Stats: )'
 	echo '[*] SSH Cipher Enumeration Complete'
 	echo ""
 
 #SSL Cipher Scanning
-	echo '[*] Testing SSL Ciphers on ports 443 and 8443'
+	echo '[*] Testing SSL Ciphers on ports 443, 8443, and 3389'
 	for i in $(cat ./ports/443.txt); do
-		java -jar /root/tools/TestSSLServer.jar $i 443 > ./ssl-ciphers/$i.443.txt && echo "[*] $i:443 Complete";
+		java -jar /root/tools/TestSSLServer.jar $i 443 > ./ssl-ciphers/$i.443 && echo -n '.';
 	done
-	for i in $(cat ./ports/8443.txt); do
-		java -jar /root/tools/TestSSLServer.jar $i 8443 > ./ssl-ciphers/$i.8443txt && echo "[*] $i:8443 Complete";
-	done
-	echo '[*] SSL Cipher Test Complete'
 	echo ""
-
+	for i in $(cat ./ports/8443.txt); do
+		java -jar /root/tools/TestSSLServer.jar $i 8443 > ./ssl-ciphers/$i.8443 && echo -n '.';
+	done
+	echo ""
+	for i in $(cat ./ports/3389.txt); do
+		java -jar /root/tools/TestSSLServer.jar $i 3389 > ./ssl-ciphers/$i.8443 && echo -n '.';
+	done
+	echo ""
+	echo '[*] SSL Cipher Test Complete'
+	echo '[*] Sorting Cipher Outputs'
+	grep RC4 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/RC4.txt
+	grep CBC ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g'  > ./ssl-ciphers/CBC.txt
+	grep SSLv2 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv2.txt
+	grep SSLv3 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv3.txt
+	echo '[*] Sorting Complete'
+	echo ""
+	
 #Checking for robots.txt
 	echo '[*] Checking for robots.txt on common http(s) ports'
 	#Checking hosts with 80 open
@@ -253,6 +265,6 @@ cd ../
 #TODO - Consider leaving script live until all nikto sessions are completed
 #TODO - If above completed, merge post-nikto.sh to ext-auto-recon
 echo '[*] Most tests complete. Results written to ./ext-auto-recon'
-echo '[*] Nikto sessions may still be running. Comfirm with "screen -dr nikto"'
+echo '[*] Nikto sessions may still be running. Confirm with "screen -dr nikto"'
 echo '[*] Once all Nikto sessions are complete, consider running "post-nikto.sh'
 echo "[*] Or don't, I don't care"
