@@ -94,17 +94,17 @@ mkdir ./ext-auto-recon/robots
 
 #Launching EyeWitness
 	echo '[*] Launching EyeWitness for Web'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessWEB --results 10000 --web --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessWEB --results 10000 --web --no-prompt --no-dns
 	echo '[*] EyeWitness for Web Complete'
 	echo ""
 
 	echo '[*] Launching EyeWitness for RDP'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessRDP --results 10000 --rdp --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessRDP --results 10000 --rdp --no-prompt --no-dns
 	echo '[*] EyeWitness for RDP Complete'
 	echo ""
 
 	echo '[*] Launching EyeWitness for VNC'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --vnc --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --vnc --no-prompt --no-dns
 	echo '[*] EyeWitness for VNC Complete'
 	echo ""
 
