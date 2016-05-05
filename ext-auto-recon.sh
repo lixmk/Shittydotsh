@@ -176,10 +176,10 @@ mkdir ./ext-auto-recon/robots
 	echo ""
 	echo '[*] SSL Cipher Test Complete'
 	echo '[*] Sorting Cipher Outputs'
-	grep RC4 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/RC4.txt
-	grep CBC ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g'  > ./ssl-ciphers/CBC.txt
-	grep SSLv2 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv2.txt
-	grep SSLv3 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv3.txt
+	grep RC4 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '/' -f 3 | cut -d '.' -f 2,3,4,5,6 | sed 's|:||g' | sort -u | sed 's/\.443/:443/g' | sed 's/\.8443/:8443/g' | sed 's/\.3389/:3389/g' > ./ssl-ciphers/RC4.txt
+	grep CBC ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '/' -f 3 | cut -d '.' -f 2,3,4,5,6 | sed 's|:||g' | sort -u | sed 's/\.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/CBC.txt
+	grep SSLv2 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '/' -f 3 | cut -d '.' -f 2,3,4,5,6 | sed 's|:||g' | sort -u | sed 's/\.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv2.txt
+	grep SSLv3 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '/' -f 3 | cut -d '.' -f 2,3,4,5,6 | sed 's|:||g' | sort -u | sed 's/\.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv3.txt
 	echo '[*] Sorting Complete'
 	echo ""
 	
