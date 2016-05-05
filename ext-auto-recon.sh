@@ -42,12 +42,12 @@ mkdir ./ext-auto-recon/robots
 	echo '[*] Full Scan Complete - Sorting Output'
 	cat ./ext-auto-recon/nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap > ./ext-auto-recon/nmap/targets/listening_hosts.txt
 	echo '[*] Creating port file for next Nmap scan'
-	cat ./ext-auto-recon/nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./nmap/targets/portfile.txt
+	cat ./ext-auto-recon/nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./ext-auto-recon/nmap/targets/portfile.txt
 	echo '[*] Port file complete'
 	echo ""
 
 #Script/Service Scan
-	ports=$(cat ./nmap/targets/portfile.txt)
+	ports=$(cat ./ext-auto-recon/nmap/targets/portfile.txt)
 	echo '[*] Initiating Script and Service scan of open ports on all responding hosts'
 	echo "[*] Open ports: $ports"
 	echo '[*] Timing updates provided every 120 seconds'
