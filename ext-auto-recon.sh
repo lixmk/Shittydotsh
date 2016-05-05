@@ -58,7 +58,7 @@ mkdir ./ext-auto-recon/robots
 #Quick Nmap UDP Scan (500, 161)
 	echo '[*] Initiating UDP can for 161, 500, and 4070 (HID discoveryd)'
 	echo '[*] Timing updates provided every 60 seconds'
-	nmap -Pn -sU -sV --open --stats-every 60s -p 161,500,4070 -oA ./ext-auto-recon/nmap/udp -iL ./ext-auto-recon/nmap/targets/listening_hosts | egrep '(remaining|Stats: )'
+	nmap -Pn -sU -sV --open --stats-every 60s -p 161,500,4070 -oA ./ext-auto-recon/nmap/udp -iL ./ext-auto-recon/nmap/targets/listening_hosts.txt | egrep '(remaining|Stats: )'
 	echo '[*] UDP scan complete'
 	echo ""
 
