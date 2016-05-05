@@ -134,7 +134,7 @@ fi
 
 #Tar'ing up the basics
 	echo '[*] Adding intital results to initial.tar'
-	cp ./nmap ./initial/
+	cp -R ./nmap ./initial/
 	cp ./Net_Discovery_Report.docx ./initial/
 	cp -R ./eyewitness* ./initial/
 	tar -cf initial.tar ./initial/
