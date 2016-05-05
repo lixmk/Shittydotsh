@@ -118,17 +118,17 @@ fi
 
 #Launching EyeWitness against Web, RDP, VNC
 	echo '[*] Launching EyeWitness for Web'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessWEB --results 10000 --web --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessWEB --results 10000 --web --no-prompt --no-dns
 	echo '[*] EyeWitness for Web Complete'
 	echo ""
 
 	echo '[*] Launching EyeWitness for RDP'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessRDP --results 10000 --rdp --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessRDP --results 10000 --rdp --no-prompt --no-dns
 	echo '[*] EyeWitness for RDP Complete'
 	echo ""
 
 	echo '[*] Launching EyeWitness for VNC'
-	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --vnc --no-prompt
+	/root/tools/eyewitness/EyeWitness.py -f ./nmap/script_service.xml -d ./eyewitnessVNC --results 10000 --vnc --no-prompt --no-dns
 	echo '[*] EyeWitness for VNC Complete'
 	echo ""
 
@@ -181,10 +181,16 @@ fi
 	for i in $(cat ./ports/rdp.txt); do
 		java -jar /root/tools/TestSSLServer.jar $i 3389 > ./ssl-ciphers/$i.3389txt && echo "[*] $i:3389 Complete";
 	done
-	echo '[*] SSL Cipher Test Complete'
-	echo ""
+        echo '[*] SSL Cipher Test Complete'
+        echo '[*] Sorting Cipher Outputs'
+        grep RC4 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/RC4.txt
+        grep CBC ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g'  > ./ssl-ciphers/CBC.txt
+        grep SSLv2 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv2.txt
+        grep SSLv3 ./ssl-ciphers/* | cut -d " " -f 1 | cut -d '.' -f 2,3,4,5,6 | sed 's|/||g' | sort -u | sed 's/.443/:443/g' | sed 's/.8443/:8443/g' | sed 's/.3389/:3389/g' > ./ssl-ciphers/SSLv3.txt
+        echo '[*] Sorting Complete'
+        echo ""
 
 #Testing Complete
-echo '[*] Most tests complete. Results written to ./int-auto-recon'
+echo '[*] Tests complete. Results written to ./int-auto-recon'
 echo "[*] Don't forget to check the rspndr screen for some free hashes"
 
