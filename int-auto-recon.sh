@@ -72,7 +72,7 @@ fi
 	echo '[*] Full Scan Complete - Sorting Output'
 	cat ./int-auto-recon/nmap/fullscan.gnmap | grep open | cut -d " " -f 2 | grep -v Nmap > ./int-auto-recon/nmap/targets/listening_hosts.txt
 	echo '[*] Creating port file for next Nmap scan'
-	cat .int-auto-recon/nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./nmap/targets/portfile.txt
+	cat ./int-auto-recon/nmap/fullscan.gnmap | grep -v Status | grep -v Nmap | cut -d ':' -f 3 | sed "s|/open/tcp/||g" |cut -f 1 | sed 's|///|\n|g' | sed 's/ //g' | sed 's/,//g' | cut -d '/' -f 1 | sort -u | sed ':a;N;$!ba;s/\n/,/g' | sed 's/,//' > ./int-auto-recon/nmap/targets/portfile.txt
 	echo '[*] Port file complete'
 	echo ""
 
@@ -81,7 +81,7 @@ fi
 	echo '[*] Initiating Script and Service scan of open ports on all responding hosts'
 	echo "[*] Open ports: $ports"
 	echo '[*] Timing updates provided every 60 seconds'
-	nmap -Pn -sC -sV --open --stats-every 60s -oA ./nmap/script_service -iL ./int-auto-recon/nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
+	nmap -Pn -sC -sV --open --stats-every 60s -oA ./int-auto-recon/nmap/script_service -iL ./int-auto-recon/nmap/targets/listening_hosts.txt -p $ports | egrep '(remaining|Stats: )'
 	echo '[*] Script/Service Scan Complete'
 	echo ""
 	
