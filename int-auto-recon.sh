@@ -145,7 +145,7 @@ fi
 #Enumerating Windows hosts for null sessions. Will pull lists of usernames
 	echo '[*] Enumerating username from Windows boxes with null sessions'
 	for i in $(cat ./ports/445.txt); do
-		enum4linux.pl -U $i >> ./enum4linux/users/$i.txt;
+		enum4linux -U $i >> ./enum4linux/users/$i.txt;
 	done
 	cat ./enum4linux/users/*.txt | grep index | cut -d " " -f 8 | cut -f 1 | sort -u > ./enum4linux/identified-users.txt
 	echo '[*] User enumeration complete'
