@@ -151,8 +151,9 @@ mkdir ./ext-auto-recon/robots
 	echo '[*] Backgrounding SSH guesses'
 	screen -dmS ssh -m medusa -M ssh -H ./ports/22.txt -u root -p Password1 -e ns -O ./medusa/ssh.medusa
 	echo '[*] Backgrounding FTP guesses'
-	screen -dmS ssh -m medusa -M ftp -H ./ports/21.txt -U /root/wordlists/ftpusers.txt -p Password1 -e ns -O ./medusa/ftp.medusa
-
+	screen -dmS ftp -m medusa -M ftp -H ./ports/21.txt -U /root/wordlists/ftpusers.txt -p Password1 -e ns -O ./medusa/ftp.medusa
+	# TODO: Fix users for FTP
+	
 #SSH Cipher Enumeration
 	echo '[*] Testing SSH Ciphers on port 22'
 	echo '[*] Timing updates provided every 60 seconds'
@@ -266,5 +267,5 @@ cd ../
 #TODO - If above completed, merge post-nikto.sh to ext-auto-recon
 echo '[*] Most tests complete. Results written to ./ext-auto-recon'
 echo '[*] Nikto sessions may still be running. Confirm with "screen -dr nikto"'
-echo '[*] Once all Nikto sessions are complete, consider running "post-nikto.sh'
+echo '[*] Once all Nikto sessions are complete, consider running "post-nikto.sh"'
 echo "[*] Or don't, I don't care"
